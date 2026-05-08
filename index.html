@@ -1,0 +1,281 @@
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Library</title>
+    <style>
+    
+        body {
+            background-color: black;
+            color: #e0e0e0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            display: flex;
+            height: 100vh;
+        }
+        .main-container {
+            display: grid;
+            background-color: black;
+            grid-template-columns:1fr 1fr;
+            width: 95vw;
+            height: 90vh;
+            gap: 15px;
+            padding:20px;
+        }
+
+        .form-section {
+            border: 1px solid #444;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            gap:20px;
+            background-color:#2a2a2a;
+        }
+
+        .form-section input, 
+        .form-section select {
+            width: 100%;
+            background: #222;
+            border: 1px solid #444;
+            color: white;
+            padding: 12px;
+            box-sizing: border-box;
+}
+        .list-section {
+            background-color: #2a2a2a;
+            border: 1px solid #444;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+
+        input, select {
+            background: #333;
+            border: 1px solid #444;
+            color: white;
+            padding: 10px;
+            border-radius: 4px;
+        }
+
+        .watched{
+            display:flex;
+            flex-direction:row;
+            gap:20px;
+    
+        }
+        .yes{
+            display:flex;
+            flex-direction:row;
+            gap:20px;
+        }
+        
+        .no{
+            display:flex;
+            flex-direction:row;
+            gap:20px;
+        }
+
+        button {
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 4px;
+            border: none;
+            transition: opacity 0.2s;
+        }
+
+        .add-btn {
+            background-color: #d97706;
+            color: white;
+            font-weight: 600;
+            font-size:0.9rem;
+        }
+
+        .add-btn:hover { background-color: #f9931e; }
+
+        
+
+        .filter-bar {
+            background:rgb(28, 26, 26) ;
+            padding: 10px;
+            display: flex;
+            gap: 20px;
+        }
+
+        .filter-link {
+            text-decoration: none;
+            color: white;
+            cursor: pointer;
+        }
+
+        .filter-link.active {
+            color: #d97706;
+        }
+
+        .movie-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); 
+            gap: 20px;
+            align-content:start;
+        }
+
+        .movie-card {
+            background: #222;
+            padding: 20px;
+            min-height: 150px;
+        }
+
+        .movie-card h3 { margin: 0 0 10px 0; font-size: 1.1rem; }
+        .movie-card p { margin: 5px 0; color: #aaa; }
+
+        .delete-btn {
+            margin-top: 15px;
+            background: #cc4444;
+            color: #f6f5f5;
+            font-weight: 600;
+            border: 1px solid #cc4444;
+            font-size: 0.9rem;
+        }
+
+        .delete-btn:hover { background: #d63131; color: rgb(178, 174, 174);font-weight:600; }
+
+        .empty-msg {
+            color: #666;
+            grid-column: 1 / -1;
+            text-align: center;
+            margin-top: 50px;
+        }
+    </style>
+    </head>
+    <body>
+
+    <div class="main-container">
+        <div class="form-section">
+            <input type="text" id="movieName" placeholder="Movie Name">
+            <input type="text" id="directorName" placeholder="Director">
+            
+            <select id="languageSelect">
+                <option value="English">English</option>
+                <option value="Spanish">Spanish</option>
+                <option value="French">French</option>
+                <option value="Other">Other</option>
+            </select>
+
+            <div class="watched">
+                <label>Watched?</label><br>
+                <div class="yes">
+                <label for="wYes">Yes</label>
+                <input type="radio" name="watched" value="true" id="wYes"> 
+                </div>
+                <div class="no">
+                <label for="wNo">No</label>
+                <input type="radio" name="watched" value="false" id="wNo" checked> 
+                </div>
+            </div>
+            <button class="add-btn" onclick="addMovie()">Add Button</button>
+        </div>
+
+        <div class="list-section">
+            <div class="filter-bar">
+                <span class="filter-link active" onclick="setFilter('all', this)">All</span>
+                <span class="filter-link" onclick="setFilter('watched', this)">Watched</span>
+                <span class="filter-link" onclick="setFilter('english', this)">English</span>
+            </div>
+
+            <div id="movieGrid" class="movie-grid">
+            </div>
+        </div>
+    </div>
+
+    <script>
+
+    
+        let movies = [];
+        let currentFilter = 'all';
+
+    
+        function addMovie() {
+            const name = document.getElementById('movieName').value;
+            const director = document.getElementById('directorName').value;
+            const language = document.getElementById('languageSelect').value;
+            const watched = document.querySelector('input[name="watched"]:checked').value === 'true';
+
+            if (!name && !director) {
+                alert("Please fill in both Name and Director");
+                return;
+            }
+
+            const newMovie = {
+                id: Date.now(),
+                name,
+                director,
+                language,
+                watched
+            };
+
+            movies.push(newMovie);
+            clearForm();
+            render();
+        }
+
+    
+        function deleteMovie(id) {
+            movies = movies.filter(movie => movie.id !== id);
+            render();
+        }
+
+        
+        function setFilter(type, element) {
+            currentFilter = type;
+            
+            
+            document.querySelectorAll('.filter-link').forEach(el => el.classList.remove('active'));
+            element.classList.add('active');
+            
+            render();
+        }
+
+        
+        function clearForm() {
+            document.getElementById('movieName').value = '';
+            document.getElementById('directorName').value = '';
+            document.getElementById('wNo').checked = true;
+        }
+
+        
+        function render() {
+            const grid = document.getElementById('movieGrid');
+            grid.innerHTML = '';
+
+            
+            let filteredMovies = movies;
+            if (currentFilter === 'watched') {
+                filteredMovies = movies.filter(m => m.watched === true);
+            } else if (currentFilter === 'english') {
+                filteredMovies = movies.filter(m => m.language === 'English');
+            }
+
+            
+            if (filteredMovies.length === 0) {
+                grid.innerHTML = '<p class="empty-msg">No items found in this category.</p>';
+                return;
+            }
+
+            
+            filteredMovies.forEach(movie => {
+                const card = document.createElement('div');
+                card.className = 'movie-card';
+                card.innerHTML = `
+                    <h3>${movie.name}</h3>
+                    <p>Director: ${movie.director}</p>
+                    <p><small>${movie.language} | ${movie.watched ? 'Watched' : 'Not Watched'}</small></p>
+                    <button class="delete-btn" onclick="deleteMovie(${movie.id})">Delete Button</button>
+                `;
+                grid.appendChild(card);
+            });
+        }
+    </script>
+</body>
+</html>
